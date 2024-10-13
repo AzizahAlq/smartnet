@@ -1,0 +1,21 @@
+# Use Ubuntu as the base image
+FROM ubuntu:20.04
+
+# Install required packages
+RUN apt-get update && apt-get install -y \
+    python3 python3-pip \
+    libssl-dev libcurl4-openssl-dev
+
+# Install OpenDDS
+RUN git clone https://github.com/objectcomputing/OpenDDS.git /opt/opendds && \
+    cd /opt/opendds && ./configure && make -j4 && make install
+
+# Install Flask for the web server
+RUN pip3 install flask
+
+# Copy the DDS subscriber and web server script
+COPY dds_subscriber_script.sh /app/dds_subscriber_script.sh
+COPY web_server.py /app/web_server.py
+
+# Run DDS subscriber and the web server
+CMD ["sh", "/app/dds_subscriber_script.sh", "&", "python3", "/app/web_server.py"]
